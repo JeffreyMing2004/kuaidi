@@ -82,6 +82,56 @@ page {
   flex: 1;
 }
 
+.loading-section {
+  display: flex;
+  justify-content: center;
+  padding: 20rpx 0;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.tracking-list {
+  margin-top: 20rpx;
+  border-top: 1rpx solid #eee;
+  padding-top: 20rpx;
+}
+
+.tracking-title {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+
+.tracking-item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.tracking-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.tracking-time {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+}
+
+.tracking-context {
+  font-size: 26rpx;
+  color: #333;
+  line-height: 1.5;
+}
+
 .error-section {
   background-color: #fff3f3;
   padding: 30rpx;
@@ -92,4 +142,54 @@ page {
 .error-message {
   font-size: 28rpx;
   color: #cc0000;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.tracking-input {
+  flex: 1;
+  padding-right: 60rpx;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 20rpx;
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ccc;
+  color: white;
+  border-radius: 50%;
+  font-size: 24rpx;
+}
+
+.query-btn[disabled] {
+  background-color: #a0d9b1;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tips-section {
+  background-color: white;
+  padding: 30rpx;
+  border-radius: 10rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.tips-title {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.tips-content {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.5;
 }
