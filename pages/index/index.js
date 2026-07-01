@@ -1,45 +1,45 @@
 // index.js
-// 快递公司识别规则
+// 快递公司识别规则（更宽松的匹配）
 const expressRules = [
   {
     name: '顺丰速运',
-    patterns: [/^SF\d{13}$/, /^sf\d{13}$/]
-  },
-  {
-    name: '中通快递',
-    patterns: [/^7[3-5]\d{11}$/, /^2\d{11}$/]
+    patterns: [/^sf/i]  // SF开头
   },
   {
     name: '圆通速递',
-    patterns: [/^YT\d{13}$/, /^yt\d{13}$/]
-  },
-  {
-    name: '韵达快递',
-    patterns: [/^\d{13}$/, /^\d{10}$/]
-  },
-  {
-    name: '申通快递',
-    patterns: [/^7[7-9]\d{11}$/, /^88\d{10}$/]
-  },
-  {
-    name: '百世快递',
-    patterns: [/^7\d{12}$/, /^70\d{11}$/]
+    patterns: [/^yt/i, /^yunda/i]  // YT开头
   },
   {
     name: '极兔速递',
-    patterns: [/^JT\d{13}$/, /^jt\d{13}$/]
-  },
-  {
-    name: '邮政快递',
-    patterns: [/^1[0-9]\d{11}$/, /^99\d{11}$/]
-  },
-  {
-    name: 'EMS',
-    patterns: [/^E[A-Z]\d{9}CN$/, /^e[a-z]\d{9}cn$/]
+    patterns: [/^jt/i]  // JT开头
   },
   {
     name: '京东物流',
-    patterns: [/^JD[A-Z]\d{11}$/, /^jd[a-z]\d{11}$/]
+    patterns: [/^jd/i, /^JDVA/i, /^JDVB/i, /^JDVC/i]  // JD开头
+  },
+  {
+    name: 'EMS',
+    patterns: [/^e[a-z]\d/i, /^ems/i, /^EA\d/i, /^EB\d/i, /^EC\d/i, /^ED\d/i, /^EE\d/i]  // EMS相关
+  },
+  {
+    name: '中通快递',
+    patterns: [/^7[3-5]\d{11}$/, /^2\d{11,12}$/]  // 73/74/75开头13位，或2开头12-13位
+  },
+  {
+    name: '申通快递',
+    patterns: [/^7[7-9]\d{11}$/, /^88\d{10,11}$/]  // 77/78/79开头13位，或88开头12-13位
+  },
+  {
+    name: '百世快递',
+    patterns: [/^70\d{11,12}$/, /^71\d{11,12}$/]  // 70/71开头13-14位
+  },
+  {
+    name: '韵达快递',
+    patterns: [/^\d{10,15}$/]  // 纯数字10-15位（最后匹配，避免误判）
+  },
+  {
+    name: '邮政快递',
+    patterns: [/^1[0-9]\d{11}$/, /^99\d{11}$/, /^98\d{11}$/]  // 1开头13位，或99/98开头13位
   }
 ];
 
@@ -57,6 +57,20 @@ const expressCodeMap = {
   '京东物流': 'jd'
 };
 
+// 快递公司列表（用于手动选择）
+const companyList = [
+  '顺丰速运',
+  '中通快递',
+  '圆通速递',
+  '韵达快递',
+  '申通快递',
+  '百世快递',
+  '极兔速递',
+  '邮政快递',
+  'EMS',
+  '京东物流'
+];
+
 // 快递100 API配置
 const API_CONFIG = {
   key: 'MvRZNCip8908', // 用户提供的API key
@@ -73,7 +87,10 @@ Page({
     showResult: false,
     showError: false,
     isLoading: false,
-    errorMessage: ''
+    errorMessage: '',
+    showManualSelect: false,
+    companyList: companyList,
+    companyIndex: -1
   },
 
   onInput(e) {
@@ -91,8 +108,29 @@ Page({
       companyName: '',
       companyCode: '',
       trackingInfo: '',
-      trackingList: []
+      trackingList: [],
+      showManualSelect: false,
+      companyIndex: -1
     });
+  },
+
+  onCompanyChange(e) {
+    const index = e.detail.value;
+    const companyName = companyList[index];
+    const companyCode = expressCodeMap[companyName];
+    const trackingNumber = this.data.trackingNumber.trim();
+    
+    this.setData({
+      companyIndex: index,
+      companyName: companyName,
+      companyCode: companyCode,
+      showResult: true,
+      showError: false,
+      isLoading: true
+    });
+    
+    // 查询物流信息
+    this.queryExpressInfo(trackingNumber, companyCode);
   },
 
   onQuery() {
@@ -133,10 +171,13 @@ Page({
       // 调用快递100 API查询物流信息
       this.queryExpressInfo(trackingNumber, companyCode);
     } else {
+      // 本地无法识别，尝试使用快递100智能识别
       this.setData({
-        showError: true,
-        errorMessage: '无法识别该快递单号，请检查单号是否正确'
+        showResult: true,
+        companyName: '智能识别中...',
+        isLoading: true
       });
+      this.autoIdentifyAndQuery(trackingNumber);
     }
   },
 
@@ -217,6 +258,53 @@ Page({
           isLoading: false,
           showError: true,
           errorMessage: '网络请求失败，请检查网络连接'
+        });
+      }
+    });
+  },
+
+  // 快递100智能识别API
+  autoIdentifyAndQuery(trackingNumber) {
+    const that = this;
+    
+    wx.request({
+      url: 'https://www.kuaidi100.com/autonumber/auto',
+      data: {
+        num: trackingNumber,
+        key: API_CONFIG.key
+      },
+      method: 'GET',
+      header: {
+        'content-type': 'application/json'
+      },
+      success(res) {
+        if (res.statusCode === 200 && res.data && res.data.auto && res.data.auto.length > 0) {
+          const companyCode = res.data.auto[0].comCode;
+          const companyName = res.data.auto[0].name || '快递公司';
+          
+          that.setData({
+            companyName: companyName,
+            companyCode: companyCode
+          });
+          
+          // 查询物流信息
+          that.queryExpressInfo(trackingNumber, companyCode);
+        } else {
+          that.setData({
+            isLoading: false,
+            showError: true,
+            errorMessage: '无法自动识别快递公司，请手动选择',
+            showManualSelect: true
+          });
+        }
+      },
+      fail(err) {
+        console.error('智能识别失败：', err);
+        that.setData({
+          isLoading: false,
+          showError: true,
+          errorMessage: '智能识别失败，请手动选择快递公司',
+          showManualSelect: true
         });
       }
     });

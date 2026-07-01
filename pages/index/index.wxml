@@ -39,6 +39,12 @@
     
     <view class="error-section" wx:if="{{showError}}">
       <text class="error-message">{{errorMessage}}</text>
+      <view class="manual-select" wx:if="{{showManualSelect}}">
+        <view class="select-label">手动选择快递公司：</view>
+        <picker bindchange="onCompanyChange" value="{{companyIndex}}" range="{{companyList}}">
+          <view class="picker-value">{{companyList[companyIndex] || '请选择快递公司'}}</view>
+        </picker>
+      </view>
     </view>
     
     <view class="tips-section">

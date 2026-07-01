@@ -193,3 +193,26 @@ page {
   color: #666;
   line-height: 1.5;
 }
+
+.manual-select {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #ffcccc;
+}
+
+.select-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.picker-value {
+  height: 80rpx;
+  line-height: 80rpx;
+  padding: 0 20rpx;
+  background-color: #fff;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #333;
+}
