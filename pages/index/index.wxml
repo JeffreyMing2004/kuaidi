@@ -1,7 +1,25 @@
 <!--index.wxml-->
-<navigation-bar title="Weixin" back="{{false}}" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="快递查询" back="{{false}}" color="black" background="#FFF"></navigation-bar>
 <scroll-view class="scrollarea" scroll-y type="list">
   <view class="container">
-    Weixin
+    <view class="input-section">
+      <input class="tracking-input" placeholder="请输入快递单号" bindinput="onInput" value="{{trackingNumber}}" />
+      <button class="query-btn" bindtap="onQuery">查询</button>
+    </view>
+    
+    <view class="result-section" wx:if="{{showResult}}">
+      <view class="company-info">
+        <text class="label">快递公司：</text>
+        <text class="value">{{companyName}}</text>
+      </view>
+      <view class="tracking-info" wx:if="{{trackingInfo}}">
+        <text class="label">物流信息：</text>
+        <text class="value">{{trackingInfo}}</text>
+      </view>
+    </view>
+    
+    <view class="error-section" wx:if="{{showError}}">
+      <text class="error-message">{{errorMessage}}</text>
+    </view>
   </view>
 </scroll-view>
